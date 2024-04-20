@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "*.asm": "gbz80",
+    "*.inc": "gbz80",
+    "stdint.h": "c",
+    "bitutil.h": "c",
+    "default.h": "c",
+    "ports.h": "c",
+    "defs.h": "c"
+  },
+  "files.insertFinalNewline": true
+}
