@@ -10,7 +10,7 @@ OBJS=$(patsubst ./libs/%.c, ./libs/%.o, $(LIBS))
 
 .PHONY: all
 
-all: osc.89z
+all: osc.89z rcv.89z status.89z wrt.89z cheat.89z
 
 %.89z: %.o $(OBJS)
 	$(LD) $(TIGCC)/lib/tigcc.a $(OBJS) $(LDFLAGS) -o $(basename $@) $<
