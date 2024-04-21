@@ -8,12 +8,16 @@ LDFLAGS=
 LIBS=$(wildcard ./libs/*.c)
 OBJS=$(patsubst ./libs/%.c, ./libs/%.o, $(LIBS))
 
-.PHONY: all
+.PHONY: all clean
 
-all: osc.89z rcv.89z status.89z wrt.89z cheat.89z
+all: bin/osc.89z bin/rcv.89z bin/status.89z bin/wrt.89z bin/cheat.89z
 
-%.89z: %.o $(OBJS)
+bin/%.89z: %.o $(OBJS)
 	$(LD) $(TIGCC)/lib/tigcc.a $(OBJS) $(LDFLAGS) -o $(basename $@) $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+
+clean: 
+	rm ./bin/*.89z
