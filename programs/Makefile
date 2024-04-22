@@ -10,14 +10,13 @@ OBJS=$(patsubst ./libs/%.c, ./libs/%.o, $(LIBS))
 
 .PHONY: all clean
 
-all: bin/osc.89z bin/rcv.89z bin/status.89z bin/wrt.89z bin/cheat.89z
+all: bin/osc.89z bin/rcv.89z bin/rcv2.89z bin/status.89z bin/wrt.89z bin/wrt2.89z bin/cheat.89z
 
 bin/%.89z: %.o $(OBJS)
-	$(LD) $(TIGCC)/lib/tigcc.a $(OBJS) $(LDFLAGS) -o $(basename $@) $<
+	$(LD) $(OBJS) $(LDFLAGS) $<  $(TIGCC)/lib/tigcc.a -o $(basename $@) 
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
-
 
 clean: 
 	rm ./bin/*.89z

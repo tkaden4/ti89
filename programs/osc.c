@@ -19,6 +19,4 @@ int __main()
     delay(period);
     state = !state;
   }
-
-  OSLinkReset();
 }

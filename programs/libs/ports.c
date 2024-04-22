@@ -1,7 +1,6 @@
 #include <tigcclib.h>
 #include "ports.h"
 
-static long long _link_timeout = -1;
 static volatile u8 *CTRL_PORT = (u8 *)0x60000C;
 static volatile u8 *STATUS_PORT = (u8 *)0x60000D;
 static volatile u8 *DATA_PORT = (u8 *)0x60000E;
@@ -39,6 +38,7 @@ inline void link_get(bool *porta, bool *portb)
 
 inline void link_init()
 {
+  OSLinkReset();
   // Disable any interrupts and force manual control
   link_ctrl(0b01100000);
 }
@@ -50,7 +50,12 @@ inline void link_reset()
 
 inline u8 link_full_read()
 {
-  return 0b11 & ~((*DATA_PORT & (0b11 << 2)) >> 2);
+  return 0b11 & ~((*DATA_PORT & 0b1100) >> 2);
+}
+
+inline void link_full_set(u8 data)
+{
+  *DATA_PORT = (*DATA_PORT & ~0b11) | (data & 0b11);
 }
 
 bool link_read_bit(void)

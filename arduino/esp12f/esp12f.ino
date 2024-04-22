@@ -1,88 +1,54 @@
-constexpr int PORTA_PIN = D1;
-constexpr int PORTB_PIN = D2;
+#include <Wire.h>
+#include <TILink.h>
 
-bool receive(int onePin, int zeroPin) {
-  pinMode(onePin, INPUT_PULLUP);
-  pinMode(zeroPin, INPUT_PULLUP);
 
-  bool one = 0;
-  bool zero = 0;
-  // Wait for one of the lines to go low
-  while((one = digitalRead(onePin)) && (zero = digitalRead(zeroPin)));
+constexpr int PORTA_PIN = D2;
+constexpr int PORTA_READ_PIN = D6;
+constexpr int PORTB_PIN = D1;
+constexpr int PORTB_READ_PIN = D5;
 
-  bool data = one ? 0 : 1;
-  int recvPin = one ? zeroPin : onePin;
-  int ackPin = one ? onePin : zeroPin;
-
-  // Pull ack low
-  pinMode(ackPin, OUTPUT_OPEN_DRAIN);
-  digitalWrite(ackPin, 0);
-
-  // Wait for recv to go high 
-  while(!digitalRead(recvPin));
-
-  // Reset pin and bus state
-  pinMode(ackPin, INPUT_PULLUP);
-  pinMode(recvPin, INPUT_PULLUP);
-
-  return data;
+// A 1 means that its not pulled down (actual voltage state)
+unsigned char get_state() {
+  unsigned char a = digitalRead(PORTA_READ_PIN) == HIGH;
+  unsigned char b = digitalRead(PORTB_READ_PIN) == HIGH;
+  return a | (b << 1);
 }
 
-uint8_t link_read() {
-  uint8_t data = 0;
-  for (int i = 0; i < 8; i++) {
-    bool bit = receive(PORTB_PIN, PORTA_PIN);
-    data = (data & ~(1 << i)) | (bit << i);
-  }
-  return data;
+// A 1 means that its pulled down (corresponding input should be 0)
+void set_state(unsigned char state) {
+  unsigned char a = state & 0b1 ? LOW : HIGH;
+  unsigned char b = (state >> 1) & 0b1 ? LOW : HIGH;
+
+  digitalWrite(PORTB_PIN, b);
+  digitalWrite(PORTA_PIN, a);
 }
 
+ti_link_t ti;
+ti_bit_link_t tib;
+bool state = 0;
 
-void transmit(int send, int ack) {
-  // Setup pins (write to send, recv from ack)
-  pinMode(send, OUTPUT_OPEN_DRAIN);
-  pinMode(ack, INPUT_PULLUP);
-
-  // Pull "send" pin low
-  digitalWrite(send, 0);
-
-  // Wait for the "ack" pin to go low
-  while (digitalRead(ack))
-    ;
-
-  // reset the bus (pull ack & send high)
-  pinMode(send, INPUT_PULLUP);
-  pinMode(ack, INPUT_PULLUP);
-
-  // Wait for the bus to become open again
-  while (!digitalRead(ack))
-    ;
-}
-
-/*
-I stole this code from
-https://merthsoft.com/linkguide/hardware.html
-and modified it a bit
-*/
-void link_write(char data) {
-  for (int bit = 0; bit < 8; bit++) {
-    if (data & 1) {
-      transmit(PORTB_PIN, PORTA_PIN);
-    } else {
-      transmit(PORTA_PIN, PORTB_PIN);
-    }
-    data >>= 1;
-  }
-}
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
-  pinMode(PORTA_PIN, INPUT_PULLUP);
-  pinMode(PORTB_PIN, INPUT_PULLUP);
-  delay(2000);
+  pinMode(PORTA_PIN, OUTPUT_OPEN_DRAIN);
+  pinMode(PORTA_READ_PIN, INPUT);
+
+  pinMode(PORTB_PIN, OUTPUT_OPEN_DRAIN);
+  pinMode(PORTB_READ_PIN, INPUT);
+
+  ti_bit_link_init(&tib, get_state, set_state);
+  ti_link_init(&ti, &tib);
+
+  ti_link_write(&ti, state ? 0x0A : 0xA0);
 }
 
+
 void loop() {
-  digitalWrite(LED_BUILTIN, receive(PORTB_PIN, PORTA_PIN));
+  delay(50);
+  digitalWrite(LED_BUILTIN, state);
+  if (ti_link_update(&ti)) {
+    ti_link_write(&ti, state ? 0x0A : 0xA0);
+    state = !state;
+  }
 }

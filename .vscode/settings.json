@@ -6,7 +6,8 @@
     "bitutil.h": "c",
     "default.h": "c",
     "ports.h": "c",
-    "defs.h": "c"
+    "defs.h": "c",
+    "link.h": "c"
   },
   "files.insertFinalNewline": true
 }
