@@ -37,18 +37,24 @@ void setup() {
   pinMode(PORTB_PIN, OUTPUT_OPEN_DRAIN);
   pinMode(PORTB_READ_PIN, INPUT);
 
+  Serial.begin(9600);
+
   ti_bit_link_init(&tib, get_state, set_state);
   ti_link_init(&ti, &tib);
 
-  ti_link_write(&ti, state ? 0x0A : 0xA0);
+  while(!Serial.available()){}
+  ti_link_write(&ti, Serial.read());
 }
 
 
 void loop() {
-  delay(50);
   digitalWrite(LED_BUILTIN, state);
   if (ti_link_update(&ti)) {
-    ti_link_write(&ti, state ? 0x0A : 0xA0);
-    state = !state;
+    if (Serial.available()) {
+      char c = Serial.read();
+      if(c == '\n') return;
+      ti_link_write(&ti, c);
+      state = !state;
+    }
   }
 }

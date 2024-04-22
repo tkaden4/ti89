@@ -33,6 +33,7 @@ int __main()
 
       ClearScreen();
       DrawStr(0, 0, byteString, A_NORMAL);
+      DrawChar(0, 10, b, A_NORMAL);
 
       // Start another read
       ti_link_read(&ti);
