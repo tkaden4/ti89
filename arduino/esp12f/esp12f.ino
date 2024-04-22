@@ -1,6 +1,4 @@
-#include <Wire.h>
 #include <TILink.h>
-
 
 constexpr int PORTA_PIN = D2;
 constexpr int PORTA_READ_PIN = D6;
@@ -8,14 +6,16 @@ constexpr int PORTB_PIN = D1;
 constexpr int PORTB_READ_PIN = D5;
 
 // A 1 means that its not pulled down (actual voltage state)
-unsigned char get_state() {
+unsigned char get_state()
+{
   unsigned char a = digitalRead(PORTA_READ_PIN) == HIGH;
   unsigned char b = digitalRead(PORTB_READ_PIN) == HIGH;
   return a | (b << 1);
 }
 
 // A 1 means that its pulled down (corresponding input should be 0)
-void set_state(unsigned char state) {
+void set_state(unsigned char state)
+{
   unsigned char a = state & 0b1 ? LOW : HIGH;
   unsigned char b = (state >> 1) & 0b1 ? LOW : HIGH;
 
@@ -27,8 +27,8 @@ ti_link_t ti;
 ti_bit_link_t tib;
 bool state = 0;
 
-
-void setup() {
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
 
   pinMode(PORTA_PIN, OUTPUT_OPEN_DRAIN);
@@ -42,17 +42,22 @@ void setup() {
   ti_bit_link_init(&tib, get_state, set_state);
   ti_link_init(&ti, &tib);
 
-  while(!Serial.available()){}
+  while (!Serial.available())
+  {
+  }
   ti_link_write(&ti, Serial.read());
 }
 
-
-void loop() {
+void loop()
+{
   digitalWrite(LED_BUILTIN, state);
-  if (ti_link_update(&ti)) {
-    if (Serial.available()) {
+  if (ti_link_update(&ti))
+  {
+    if (Serial.available())
+    {
       char c = Serial.read();
-      if(c == '\n') return;
+      if (c == '\n')
+        return;
       ti_link_write(&ti, c);
       state = !state;
     }
