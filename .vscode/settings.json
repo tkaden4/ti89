@@ -7,7 +7,8 @@
     "default.h": "c",
     "ports.h": "c",
     "defs.h": "c",
-    "link.h": "c"
+    "link.h": "c",
+    "chrono": "c"
   },
   "files.insertFinalNewline": true
 }
